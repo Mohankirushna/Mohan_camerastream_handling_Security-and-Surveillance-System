@@ -2,6 +2,15 @@
 
 ### Google Developer Group x Heliverse Project: *Security Surveillance Automation Using AI Agents*
 
+To initiate the project, we aim to create a basic implementation that demonstrates the functionality of AI agents in a security surveillance system. The focus will be on developing a prototype where AI agents can process video streams to detect and classify basic events, such as identifying individuals, tracking their movements, and flagging unusual activities. This initial system will serve as a proof of concept, showcasing how AI agents can collaborate to enhance surveillance capabilities. Once the foundational system is in place, we will optimize its performance by comparing different algorithms, models, and architectures. Later, we plan to incorporate more complex scenarios and environments to expand the system's functionality and robustness.
+
+#### Team Optimization Ideas:  
+- **Sharvin's Idea - Camera Synchronization:** Implement a feature where illegal activity detected in one camera triggers alerts in nearby cameras. For instance, if a suspect leaves the frame of one camera, the adjacent camera can track the suspect seamlessly using a unique bounding box identifier. This synchronization ensures continuous monitoring, allowing authorities to follow the suspect's route effectively.
+
+- **Jefery's Idea - Dynamic Framing:** Develop a system where all cameras operate at a minimal frame rate (e.g., 1 FPS) under normal conditions. If a potential threat is detected, the system dynamically scales up the frame rate for relevant cameras, capturing the incident in greater detail. For example, cameras detecting simultaneous robberies on different floors can automatically adjust their FPS, ensuring critical events are recorded with higher precision and appropriate alarms are raised.
+
+This iterative development approach, starting from a basic demonstration to gradual optimization and expansion, ensures a clear path for building a robust and scalable surveillance system.
+
 ---
 
 ## *Workflow Design Overview*
@@ -35,7 +44,7 @@
    - *Technology*: A combination of supervised and unsupervised learning can be applied, with human input used to label edge cases and fine-tune model performance.
 
 7. *Reduction of False Positives*  
-   - *Action*: Integrate cascading layers of AI agents where lower-level agents (e.g., basic object detection) feed into more complex agents (e.g., behavior analysis). This minimizes unne wecessary false alarms.  
+   - *Action*: Integrate cascading layers of AI agents where lower-level agents (e.g., basic object detection) feed into more complex agents (e.g., behavior analysis). This minimizes unnecessary false alarms.  
    - *Continuous Feedback Loop*: AI agents refine thresholds to reduce error rates and optimize the system to handle more complex scenarios over time.
 
 ---
@@ -101,7 +110,7 @@
 - *Talkback Feature*:  
   - Develop a system to send audio/text messages to the scene (e.g., TTS for audio instructions).  
   - Write a UI for operators to issue real-time commands.
-- *Operator Dashboard*:  
+- *Operator Dashboard* (Not a Priority):  
   - Build an interactive dashboard to display live streams, alerts, and event details.  
   - Use web frameworks like React, Angular, or Flask.
 
@@ -119,25 +128,25 @@
 
 ### *7. Post-Incident Analysis and Continuous Improvement*
 #### *Tasks*:
-- Incident Replay Tool:
-- Develop a tool to replay flagged incidents and analyze why events were triggered.
-- Highlight AI decisions for operator review.
-- Model Retraining Pipelines:
-- Set up automated pipelines for retraining models with new data.
-- Include hyperparameter tuning and model evaluation scripts.
-- Performance Monitoring:
-- Write scripts to monitor model performance (e.g., detection accuracy, false positive rate).
-- Generate periodic performance reports for the team.
+- *Incident Replay Tool*:
+  - Develop a tool to replay flagged incidents and analyze why events were triggered.
+  - Highlight AI decisions for operator review.
+- *Model Retraining Pipelines*:
+  - Set up automated pipelines for retraining models with new data.
+  - Include hyperparameter tuning and model evaluation scripts.
+- *Performance Monitoring*:
+  - Write scripts to monitor model performance (e.g., detection accuracy, false positive rate).
+  - Generate periodic performance reports for the team. (Not a Priority)
 
 ### *8. Privacy and Security*
 #### *Tasks:
-- Data Encryption:
-- Encrypt all video streams and event logs. Use SSL/TLS for data transmission.
-- Access Control:
-- Implement role-based access control (RBAC) for operators and administrators.
-- Write code to track and log user actions within the system.
-- Privacy Filters:
-- Develop algorithms to blur sensitive areas or anonymize faces in video streams.
+- *Data Encryption*:
+  - Encrypt all video streams and event logs. Use SSL/TLS for data transmission.
+- *Access Control*:
+  - Implement role-based access control (RBAC) for operators and administrators.
+  - Write code to track and log user actions within the system.
+- *Privacy Filters*:
+  - Develop algorithms to blur sensitive areas or anonymize faces in video streams.
 
 ---
 
@@ -202,21 +211,52 @@
    - Human operators review flagged events through a dashboard.  
    - Feedback is processed by the *Feedback Learning Agent* to refine models.
 
-### *5. Agent Scalability*
-#### *Distributed Deployment*:
-- Deploy agents on edge devices for localized processing (e.g., Object Detection Agent on cameras).  
-- Use cloud services for computationally intensive tasks (e.g., Scene Understanding Agent).  
-
-#### *Dynamic Scaling*:
-- Scale agents independently using *Kubernetes* or *serverless platforms* like AWS Lambda.  
-- Assign more resources to critical agents during peak times (e.g., festivals or high-traffic periods).
-
-### *6. Key Technologies for Agent Development*
+### *5. Key Technologies for Agent Development*
 #### *AI Models*:
 - Object Detection: YOLOv8, Faster R-CNN, SSD.  
 - Anomaly Detection: Autoencoders, One-Class SVM, LSTMs, or Gated Recurrent Units (GRUs).  
 - Scene Understanding: OpenAI GPT, Hugging Face Transformers.
 
-#### *Agent Frameworks*:
-- *Multi-Agent Systems*: SPADE, JADE, or Microsoft Bot Framework.  
-- *Message Queues*: RabbitMQ, Apache Kafka, or ZeroMQ for inter-agent communication.  
+---
+
+## File Structure
+
+Security-and-Surveillance-System/
+├── README.md
+├── requirements.txt         
+├── main.py                  # Entry point for the entire application
+├── configs/                 # Configuration files
+│   ├── camera_config.json   # Camera zones, locations, settings
+│   ├── model_config.json    # Model settings (e.g., YOLO paths, thresholds)
+│   └── alert_config.json    # Notification thresholds
+├── data/                    # Data storage directory
+│   ├── raw_videos/          # Raw video streams or sample data
+│   ├── processed_frames/    # Preprocessed frames for AI models
+│   └── logs/                # Event and error logs
+├── scripts/                 # Core scripts for modular functionality
+│   ├── camera/
+│   │   ├── camera_stream_handler.py  # Handles video streams
+│   │   └── camera_db.py              # Camera zone/position database
+│   ├── preprocessing/
+│   │   ├── frame_extractor.py        # Extract and buffer frames
+│   │   └── image_normalizer.py       # Preprocessing for AI input
+│   ├── ai_agents/
+│   │   ├── object_detection_agent.py   # YOLO-based detection
+│   │   ├── anomaly_detection_agent.py  # Behavior pattern analysis
+│   │   ├── scene_understanding.py      # Contextual reasoning (LLMs)
+│   │   └── feedback_agent.py           # Feedback-based learning from human
+│   ├── notification/
+│   │   ├── notifier.py               # Send email/SMS notifications
+│   │   └── talkback.py               
+│   └── utils/
+│       ├── logger.py                 
+│       └── helper_functions.py       # Reusable helper functions
+├── models/                  # AI models and training scripts
+│   ├── yolo/                
+│   ├── anomaly_detection/   
+│   └── retrain_pipeline.py  
+└── tests/                   # Unit and integration tests
+    ├── test_camera.py       
+    ├── test_ai_agents.py    
+    └── test_notification.py
+
