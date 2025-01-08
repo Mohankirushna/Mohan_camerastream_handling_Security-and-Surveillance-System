@@ -220,7 +220,7 @@ This iterative development approach, starting from a basic demonstration to grad
 ---
 
 ## File Structure
-
+```plaintext
 Security-and-Surveillance-System/
 ├── README.md
 ├── requirements.txt         
@@ -259,4 +259,4 @@ Security-and-Surveillance-System/
     ├── test_camera.py       
     ├── test_ai_agents.py    
     └── test_notification.py
-
+```
