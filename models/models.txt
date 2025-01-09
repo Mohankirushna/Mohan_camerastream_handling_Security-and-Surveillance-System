@@ -1,0 +1,2 @@
+Object Detection: YOLOvX 
+Scene Understanding: LLM
