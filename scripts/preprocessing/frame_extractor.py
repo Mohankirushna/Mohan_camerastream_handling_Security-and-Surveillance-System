@@ -10,7 +10,15 @@ class PreProcessor():
         # TODO: implement better processing functions like histogram equalization
         # TODO: implment processing functions based on embeddings (CLIP models)
         pass
+    def histogram_equilization(self,frame):
+        """
+        Function to improve the contrase of the frame: Allows lower constrase areas to gain a highet contrase.
 
+        input argument: frame
+        returns: Contrast enhanced frame
+        """
+        
+    
     def preprocess_frame_for_scene_understanding(self, frame): 
         # basic frame processing for CLIP models
         frame_resized = cv2.resize(frame, (224, 224))
@@ -32,4 +40,7 @@ class PreProcessor():
             "scene_frame": scene_frame,
             "object_frame": object_frame
         }
+    if __name__ = '__main__':
+        preprocessor = PreProcessor()
+        
     
