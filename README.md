@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Security-and-Surveillance-System
 
 ### Google Developer Group x Heliverse Project: *Security Surveillance Automation Using AI Agents*
@@ -260,3 +261,6 @@ Security-and-Surveillance-System/
     ├── test_ai_agents.py    
     └── test_notification.py
 ```
+=======
+# delete
+>>>>>>> Initial commit
