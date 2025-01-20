@@ -36,8 +36,3 @@ def test_preprocess_image_for_yolo():
     assert processed.shape == (416, 416, 3), "Preprocessing failed: Incorrect shape."
     assert processed.min() >= 0.0 and processed.max() <= 1.0, "Preprocessing failed: Pixel values out of range."
 
-if __name__ == "__main__":
-    test_normalize_image_for_yolo()
-    test_denoise_and_sharpen()
-    test_preprocess_image_for_yolo()
-    print("All tests passed.")
