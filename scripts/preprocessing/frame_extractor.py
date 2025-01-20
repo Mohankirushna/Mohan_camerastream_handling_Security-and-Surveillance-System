@@ -18,7 +18,6 @@ class PreProcessor():
         returns: Contrast enhanced frame
         """
         
-    
     def preprocess_frame_for_scene_understanding(self, frame): 
         # basic frame processing for CLIP models
         frame_resized = cv2.resize(frame, (224, 224))
@@ -40,7 +39,8 @@ class PreProcessor():
             "scene_frame": scene_frame,
             "object_frame": object_frame
         }
-    if __name__ = '__main__':
-        preprocessor = PreProcessor()
+
+if __name__ == '__main__':
+    preprocessor = PreProcessor()
         
     
