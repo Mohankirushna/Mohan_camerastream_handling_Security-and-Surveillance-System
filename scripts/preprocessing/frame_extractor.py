@@ -17,6 +17,14 @@ class PreProcessor():
         input argument: frame
         returns: Contrast enhanced frame
         """
+        if len(frame.shape) == 2:  # Grayscale image
+            return cv2.equalizeHist(frame)
+        else:  # Color image
+            # Convert to YUV color space
+            yuv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2YUV)
+            yuv_frame[:, :, 0] = cv2.equalizeHist(yuv_frame[:, :, 0])
+            # Convert back to BGR color space
+            return cv2.cvtColor(yuv_frame, cv2.COLOR_YUV2BGR)
         
     def preprocess_frame_for_scene_understanding(self, frame): 
         # basic frame processing for CLIP models
