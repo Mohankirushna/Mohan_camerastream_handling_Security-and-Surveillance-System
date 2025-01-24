@@ -1,27 +1,30 @@
-import torch
-import requests
 from PIL import Image
 from transformers import BlipProcessor, BlipForConditionalGeneration
 
 class SceneUnderstanding:
-    def __init__(self):
+    def __init__(self, device='cpu'):
         self.processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
-        self.model = BlipForConditionalGeneration.from_pretrained(
-            "Salesforce/blip-image-captioning-base", torch_dtype=torch.float16
-        ).to("cuda")
-        self.img_url = 'https://storage.googleapis.com/sfr-vision-language-research/BLIP/demo.jpg'
-        self.raw_image = Image.open(requests.get(self.img_url, stream=True).raw).convert('RGB')
+        self.model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base")
+        self.device = device
+        if device == 'cuda':
+            self.model.to("cuda")
+    
+    def set_image(self, img: Image):
+        self.raw_image = img
 
     def generate_caption(self, text=None):
         if text:
-            inputs = self.processor(self.raw_image, text, return_tensors="pt").to("cuda", torch.float16)
+            inputs = self.processor(self.raw_image, text, return_tensors="pt")
         else:
-            inputs = self.processor(self.raw_image, return_tensors="pt").to("cuda", torch.float16)
+            inputs = self.processor(self.raw_image, return_tensors="pt")
+        if self.device == 'cuda':
+            inputs = inputs.to("cuda")
+
         out = self.model.generate(**inputs)
         return self.processor.decode(out[0], skip_special_tokens=True)
 
     def classify_crime(self, caption):
-        crime_keywords = ["crime", "weapon", "gun", "knife", "violence", "fight", "blood"]
+        crime_keywords = ["crime", "weapon", "gun", "knife", "violence", "fight", "blood", "beating", "beaten"]
         if any(keyword in caption.lower() for keyword in crime_keywords):
             return "Crime detected"
         return "No crime"
@@ -29,15 +32,3 @@ class SceneUnderstanding:
     def save_model(self, save_dir="saved_blip"):
         self.model.save_pretrained(save_dir)
         self.processor.save_pretrained(save_dir)
-
-if __name__ == "__main__":
-    scene_understanding = SceneUnderstanding()
-    caption = scene_understanding.generate_caption("a photography of")
-    print(caption)
-    print(scene_understanding.classify_crime(caption))
-    caption = scene_understanding.generate_caption()
-    print(caption)
-    print(scene_understanding.classify_crime(caption))
-
-    # Integrate save here
-    scene_understanding.save_model("/path/to/models")
