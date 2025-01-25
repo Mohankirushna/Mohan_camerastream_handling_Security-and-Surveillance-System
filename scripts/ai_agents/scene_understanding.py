@@ -13,14 +13,14 @@ class SceneUnderstanding:
         self.raw_image = img
 
     def generate_caption(self, text=None):
-        if text:
-            inputs = self.processor(self.raw_image, text, return_tensors="pt")
+        if text != None:
+            inputs = self.processor(self.raw_image, text, return_tensors="pt", max_length=200, truncation=True)
         else:
-            inputs = self.processor(self.raw_image, return_tensors="pt")
+            inputs = self.processor(self.raw_image, return_tensors="pt", max_length=200, truncation=True)
         if self.device == 'cuda':
             inputs = inputs.to("cuda")
 
-        out = self.model.generate(**inputs)
+        out = self.model.generate(**inputs, max_length=200)
         return self.processor.decode(out[0], skip_special_tokens=True)
 
     def classify_crime(self, caption):
