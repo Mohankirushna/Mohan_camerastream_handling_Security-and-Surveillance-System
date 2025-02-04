@@ -1,2 +1,17 @@
-Object Detection: YOLOvX 
-Scene Understanding: LLM
+Object Detection:
+- YOLOvX
+- YOLOS
+
+# Scene Understanding:
+## LLM Part:
+- gpt2
+- facebook/opt-350m
+- t5-small 
+- bert-base-uncased 
+- EleutherAI/gpt-neo-125M 
+- bigscience/bloom-560m 
+- google/flan-t5-small 
+- distilgpt2
+## Vision Part:
+- ALBEF (Align Before Fuse)
+- openai/clip-vit-base-patch32
