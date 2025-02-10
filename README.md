@@ -1,7 +1,7 @@
 <<<<<<< HEAD
 # Security-and-Surveillance-System
 
-### Google Developer Group x Heliverse Project: *Security Surveillance Automation Using AI Agents*
+### Google Developer Groups x Heliverse Project: *Security Surveillance Automation Using AI Agents*
 
 To initiate the project, we aim to create a basic implementation that demonstrates the functionality of AI agents in a security surveillance system. The focus will be on developing a prototype where AI agents can process video streams to detect and classify basic events, such as identifying individuals, tracking their movements, and flagging unusual activities. This initial system will serve as a proof of concept, showcasing how AI agents can collaborate to enhance surveillance capabilities. Once the foundational system is in place, we will optimize its performance by comparing different algorithms, models, and architectures. Later, we plan to incorporate more complex scenarios and environments to expand the system's functionality and robustness.
 
