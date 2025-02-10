@@ -1,0 +1,7 @@
+
+path: /kaggle/input/facedata/WIDER_FACE_YOLO/
+train: train/images
+val: valid/images
+
+names:
+  0: face
