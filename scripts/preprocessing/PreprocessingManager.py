@@ -53,6 +53,3 @@ class PreprocessingManager:
     def stop_processing(self):
         self.running = False
         print("Processing loop stopped.")
-
-        
-    
