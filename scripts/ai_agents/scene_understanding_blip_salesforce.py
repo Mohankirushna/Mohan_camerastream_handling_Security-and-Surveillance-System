@@ -15,19 +15,13 @@ class SceneUnderstanding:
         )
         self.processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
         self.model = BlipForConditionalGeneration.from_pretrained(
-            "Salesforce/blip-image-captioning-base", torch_dtype=torch.float16
+            "Salesforce/blip-image-captioning-base"
         ).to(self.device)
     
     def detect(self, img):
-        self.raw_image = Image.fromarray(img).convert("RGB")
-        self.generate_caption()
+        raw_image = Image.fromarray(img).convert("RGB")
+        self.generate_caption(raw_image)
     
-    def set_image(self, img: Image):
-        self.raw_image = img
-
-    def generate_caption(self, text=None):
-        if text != None:
-            inputs = self.processor(self.raw_image, text, return_tensors="pt", max_length=200, truncation=True)
     def load_image(self, image_data=None, url=None):
         if image_data:
             return Image.open(image_data).convert("RGB")
