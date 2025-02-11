@@ -27,6 +27,7 @@ class FrameProcessor():
         return processed_frame
 
     def process_frame(self, frame, scene_model="blip", object_model="yolo"):
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         scene_frame = self.preprocess_frame_for_scene_understanding(scene_model, frame)
         object_frame = self.preprocess_frame_for_object_detection(object_model, frame)
 
@@ -35,10 +36,10 @@ class FrameProcessor():
             "object_frame": object_frame
         }
 
-    def normalize_image_for_yolo(self, image, target_size=(416, 416)):
+    def normalize_image_for_yolo(self, image: np.ndarray, target_size=(416, 416)):
         resized_image = cv2.resize(image, target_size)
-        normalized_image = resized_image.astype(np.float32) / 255.0
-        return normalized_image
+        # normalized_image = resized_image.astype(np.float32) / 255.0
+        return resized_image
 
     def denoise_and_sharpen(self, image):
         filtered = cv2.bilateralFilter(image, d=9, sigmaColor=75, sigmaSpace=75)
