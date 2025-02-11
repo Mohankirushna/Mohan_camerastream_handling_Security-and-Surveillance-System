@@ -9,6 +9,10 @@ class SceneUnderstanding:
         if device == 'cuda':
             self.model.to("cuda")
     
+    def detect(self, img):
+        self.raw_image = Image.fromarray(img).convert("RGB")
+        self.generate_caption()
+    
     def set_image(self, img: Image):
         self.raw_image = img
 
@@ -20,8 +24,9 @@ class SceneUnderstanding:
         if self.device == 'cuda':
             inputs = inputs.to("cuda")
 
-        out = self.model.generate(**inputs, max_length=200)
-        return self.processor.decode(out[0], skip_special_tokens=True)
+        self.out = self.model.generate(**inputs, max_length=200)
+        self.out = self.processor.decode(self.out[0], skip_special_tokens=True)
+        return self.out
 
     def classify_crime(self, caption):
         crime_keywords = ["crime", "weapon", "gun", "knife", "violence", "fight", "blood", "beating", "beaten"]
