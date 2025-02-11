@@ -7,9 +7,10 @@ from ultralytics import YOLO
 class YOLODetector:
     def __init__(self, model_path):
         self.model = YOLO(model_path)
+        print(self.model.info())
 
-    def detect(self, image_path):
-        results = self.model(image_path)
+    def detect(self, image):
+        results = self.model.predict(image)
         return self._process_results(results[0])
 
     def _process_results(self, result):
@@ -25,8 +26,8 @@ class YOLODetector:
                 "confidence": confidence,
                 "bbox": [x1, y1, x2, y2]
             })
-
-        return {"detections": detections}
+        self.out = {"detections": detections}
+        return self.out
 
     def visualize_results(self, image_path, results):
         image = cv2.imread(image_path)

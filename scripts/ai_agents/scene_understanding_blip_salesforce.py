@@ -15,8 +15,12 @@ class SceneUnderstanding:
         )
         self.processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
         self.model = BlipForConditionalGeneration.from_pretrained(
-            "Salesforce/blip-image-captioning-base", torch_dtype=torch.float16
+            "Salesforce/blip-image-captioning-base"
         ).to(self.device)
+    
+    def detect(self, img):
+        raw_image = Image.fromarray(img).convert("RGB")
+        self.generate_caption(raw_image)
     
     def load_image(self, image_data=None, url=None):
         if image_data:
@@ -30,8 +34,9 @@ class SceneUnderstanding:
         inputs = self.processor(image, text, return_tensors="pt") if text \
             else self.processor(image, return_tensors="pt")
         inputs = {k: v.to(self.device) for k, v in inputs.items()}
-        out = self.model.generate(**inputs)
-        return self.processor.decode(out[0], skip_special_tokens=True)
+        self.out = self.model.generate(**inputs)
+        self.out = self.processor.decode(self.out[0], skip_special_tokens=True)
+        return self.out
     
     def classify_crime(self, caption):
         crime_keywords = ["crime", "weapon", "gun", "knife", "violence", "fight", "blood", "pistol"]
