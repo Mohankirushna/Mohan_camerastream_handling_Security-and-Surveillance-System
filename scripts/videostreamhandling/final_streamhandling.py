@@ -60,7 +60,7 @@ class VideoStreamHandler:
             
             for _ in range(self.fps):
                 success, frame = camera.read()
-                self.preprocessing_manager.add_frame(frame, video_sources[index])
+                self.preprocessing_manager.add_frame(frame, video_sources[video_id])
                 if not success:
                     print(f"[INFO] Video {video_id} has ended or failed to read.")
                     break
