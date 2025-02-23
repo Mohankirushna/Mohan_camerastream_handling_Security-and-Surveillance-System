@@ -1,12 +1,6 @@
-import sys
-import os
+from scripts.obj_det.YOLODetector import YOLODetector
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'scripts','obj_det'))
-
-from YOLODetector import YOLODetector
-
-def YOLODetectorTest(image_path):
-    model_paths = ['yolov8n.pt']
+def YOLODetectorTest(image_path: any, model_paths:list[str])->dict:
     detectors = {model_path: YOLODetector(model_path) for model_path in model_paths}
 
     results_dict = {}
@@ -15,6 +9,6 @@ def YOLODetectorTest(image_path):
         results = detector.detect(image_path)
         results_dict[model_name] = results
 
-        detector.visualize_results(image_path, results)
+        # detector.visualize_results(image_path, results)
 
     print(results_dict)
