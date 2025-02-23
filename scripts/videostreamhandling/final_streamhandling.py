@@ -4,16 +4,17 @@ import asyncio
 import numpy as np
 
 class VideoStreamHandler:
-    def __init__(self, video_sources, fps=1, max_retries=3, retry_interval=5):
+    def __init__(self, video_sources, preprocessing_manager, fps=1, max_retries=3, retry_interval=5):
         self.video_sources = video_sources
-        
-        self.videoflags = [True, True, True, True, True, True]
+        self.preprocessing_manager = preprocessing_manager
+        self.videoflags = [True for _ in range(len(video_sources)+1)]
         self.fps = fps
         self.cameras = {idx: cv2.VideoCapture(path) for idx, path in video_sources.items()}
         self.video_order = list(video_sources.keys())
         self.frame_counters = {idx: 0 for idx in video_sources.keys()}
         self.max_retries = max_retries
         self.retry_interval = retry_interval
+        self.SHOW = False
 
     def update_priority(self, camera_id, level):
         increase_factor = level + 1
@@ -46,8 +47,6 @@ class VideoStreamHandler:
 
     async def handle_stream(self):
         index = 0
-        self.update_priority(3, 1)
-        self.update_priority(5, 3)
         while True:
             
             #Default Priority is level 0
@@ -77,19 +76,22 @@ class VideoStreamHandler:
             if self.is_blank_or_dark(frame):
                 timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
                 print(f"[WARNING] Blank or dark frame detected in video {video_id} at {timestamp}")
+ 
+            self.preprocessing_manager.add_frame(frame, video_sources[video_id])
 
-            frame_number = self.frame_counters[video_id]
-            self.frame_counters[video_id] += 1
-            height, width, _ = frame.shape
-            cv2.putText(frame, str(frame_number), (width - 100, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-            cv2.imshow(f"Playing Video {video_id}", frame)
+            if self.SHOW:
+                frame_number = self.frame_counters[video_id]
+                self.frame_counters[video_id] += 1
+                height, width, _ = frame.shape
+                cv2.putText(frame, str(frame_number), (width - 100, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                cv2.imshow(f"Playing Video {video_id}", frame)
 
             if cv2.waitKey(100) == ord('q'):
                 self.stop_streams()
                 return
 
-            
             index = (index + 1) % len(self.video_order)
+            await asyncio.sleep(1/self.fps)
 
     async def start_streams(self):
         await self.handle_stream()
@@ -99,17 +101,24 @@ class VideoStreamHandler:
             camera.release()
         cv2.destroyAllWindows()
         print("[INFO] Streams stopped.")
-        exit()
+        # exit()
 
 if __name__ == "__main__":
     video_sources = {
-    1: r"C:\Zlearning2024\GDG\video1.mp4",
-    2: r"",
-    3: r"C:\Zlearning2024\GDG\video3.mp4",
-    4: r"C:\Zlearning2024\GDG\video4.mp4",
-    5: r"C:\Zlearning2024\GDG\video5.mp4"
+        1: "0",
+        3: "0",
+        2: "scripts/videostreamhandling/video4.mp4"
     }
 
+    class test_processing_manager:
+        def __init__(self):
+            pass
+        def add_frame(self,frame, source):
+            pass
+    PM = test_processing_manager()
 
-    handler = VideoStreamHandler(video_sources, fps=2)
+    handler = VideoStreamHandler(video_sources, PM, fps=1)
+    handler.SHOW = True
+    handler.update_priority(1, 2)
+    handler.update_priority(2, 1)
     asyncio.run(handler.start_streams())
