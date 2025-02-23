@@ -4,16 +4,31 @@ import asyncio
 import numpy as np
 
 class VideoStreamHandler:
-    def __init__(self, video_sources, fps=1, max_retries=3, retry_interval=5):
+    def __init__(self, video_sources, fps=1, max_retries=3, retry_interval=5, debug_number=0):
         self.video_sources = video_sources
+        self.debug_number = debug_number
+        if self.debug_number==2:
+            video_sources[2] = r""
+            self.cameras = {idx: cv2.VideoCapture(path) for idx, path in video_sources.items()}
+        if self.debug_number==0:
+            self.cameras = {idx: cv2.VideoCapture(path) for idx, path in video_sources.items()}
+        if self.debug_number==3:
+            self.cameras = {idx: cv2.VideoCapture(path) if idx != 2 else None for idx, path in video_sources.items()}
         
+        print(self.video_sources)
         self.videoflags = [True, True, True, True, True, True]
         self.fps = fps
-        self.cameras = {idx: cv2.VideoCapture(path) for idx, path in video_sources.items()}
         self.video_order = list(video_sources.keys())
         self.frame_counters = {idx: 0 for idx in video_sources.keys()}
         self.max_retries = max_retries
         self.retry_interval = retry_interval
+        
+        
+        if self.debug_number==1:
+            self.update_priority(3, 1)
+            self.update_priority(5, 3)
+            self.cameras = {idx: cv2.VideoCapture(path) for idx, path in video_sources.items()}
+
 
     def update_priority(self, camera_id, level):
         increase_factor = level + 1
@@ -33,21 +48,27 @@ class VideoStreamHandler:
         asyncio.create_task(self.handle_stream())
         print(f"[Camera {camera_id}] Attempting to reconnect...")
         for attempt in range(1, self.max_retries + 1):
+            print("yes")
             await asyncio.sleep(self.retry_interval)
+            print("yesssss")
+            
+
             self.cameras[camera_id] = cv2.VideoCapture(self.video_sources[camera_id])
+
             if self.cameras[camera_id].isOpened():
                 print(f"[Camera {camera_id}] Reconnected successfully!")
                 self.videoflags[camera_id] = True
                 return True
             print(f"[Camera {camera_id}] Reconnection attempt {attempt} failed.")
-
+           
+                
         print(f"[Camera {camera_id}] Could not reconnect after {self.max_retries} attempts.")
         return False
 
     async def handle_stream(self):
         index = 0
-        self.update_priority(3, 1)
-        self.update_priority(5, 3)
+
+
         while True:
             
             #Default Priority is level 0
@@ -57,7 +78,7 @@ class VideoStreamHandler:
             if not self.videoflags[video_id]:
                 index = (index + 1) % len(self.video_order)
                 continue
-            if not camera.isOpened():
+            if camera is None or not camera.isOpened():
                 
                 print(f"[ERROR] Cannot open {self.video_sources[video_id]}. Trying to reconnect...")
                 if self.videoflags[video_id]:
@@ -65,9 +86,9 @@ class VideoStreamHandler:
                 if not await self.reconnect_camera(video_id):
                     index = (index + 1) % len(self.video_order)
                     continue
-                await asyncio.sleep(0.5)
+                await asyncio.sleep(0.01)
 
-            print(f"Now playing: Video {video_id} - {self.video_sources[video_id]}")
+            #print(f"Now playing: Video {video_id} - {self.video_sources[video_id]}")
             
             success, frame = camera.read()
             if not success:
@@ -82,12 +103,14 @@ class VideoStreamHandler:
             self.frame_counters[video_id] += 1
             height, width, _ = frame.shape
             cv2.putText(frame, str(frame_number), (width - 100, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-            cv2.imshow(f"Playing Video {video_id}", frame)
+            if self.debug_number!=0:
+                cv2.imshow(f"Playing Video {video_id}", frame)
 
-            if cv2.waitKey(100) == ord('q'):
-                self.stop_streams()
-                return
+                if cv2.waitKey(100) == ord('q'):
+                    self.stop_streams()
+                    return
 
+            await asyncio.sleep(0.001)
             
             index = (index + 1) % len(self.video_order)
 
@@ -102,14 +125,16 @@ class VideoStreamHandler:
         exit()
 
 if __name__ == "__main__":
+
+
+
     video_sources = {
     1: r"C:\Zlearning2024\GDG\video1.mp4",
-    2: r"",
+    2: r"C:\Zlearning2024\GDG\video2.mp4",
     3: r"C:\Zlearning2024\GDG\video3.mp4",
     4: r"C:\Zlearning2024\GDG\video4.mp4",
     5: r"C:\Zlearning2024\GDG\video5.mp4"
     }
 
-
-    handler = VideoStreamHandler(video_sources, fps=2)
+    handler = VideoStreamHandler(video_sources, fps=1)
     asyncio.run(handler.start_streams())
