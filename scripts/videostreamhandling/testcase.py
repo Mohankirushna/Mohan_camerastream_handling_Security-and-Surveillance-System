@@ -102,7 +102,7 @@ class VideoStreamHandler:
 if __name__ == "__main__":
     video_sources = {
         1: "/Users/mohankirushna.r/Downloads/video1.mp4",
-        2: "/Users/mohankirushna.r/Downloads/video2.mp4",  # Initially disconnected
+        2: "/Users/mohankirushna.r/Downloads/video2.mp4",
         3: "/Users/mohankirushna.r/Downloads/video3.mp4",
         4: "/Users/mohankirushna.r/Downloads/video4.mp4",
         5: "/Users/mohankirushna.r/Downloads/video5.mp4"
