@@ -4,7 +4,7 @@ import asyncio
 import numpy as np
 
 class VideoStreamHandler:
-    def __init__(self, video_sources, fps=1, max_retries=3, retry_interval=5, debug_number=0):
+    def __init__(self, video_sources, fps=1, max_retries=3, retry_interval=5, debug_number=2):
         self.video_sources = video_sources
         self.debug_number = debug_number
         if self.debug_number==2:
@@ -18,6 +18,7 @@ class VideoStreamHandler:
         print(self.video_sources)
         self.videoflags = [True, True, True, True, True, True]
         self.fps = fps
+        self.wrongcameras = []
         self.video_order = list(video_sources.keys())
         self.frame_counters = {idx: 0 for idx in video_sources.keys()}
         self.max_retries = max_retries
@@ -44,8 +45,11 @@ class VideoStreamHandler:
         std_dev = np.std(gray)
         return mean_brightness < threshold or std_dev < std_dev_threshold
 
-    async def reconnect_camera(self, camera_id):
-        asyncio.create_task(self.handle_stream())
+    async def reconnect_camera(self):
+     while True:
+      print("I've awoken")
+      await asyncio.sleep(2)
+      for camera_id in self.wrongcameras:
         print(f"[Camera {camera_id}] Attempting to reconnect...")
         for attempt in range(1, self.max_retries + 1):
             print("yes")
@@ -58,13 +62,21 @@ class VideoStreamHandler:
             if self.cameras[camera_id].isOpened():
                 print(f"[Camera {camera_id}] Reconnected successfully!")
                 self.videoflags[camera_id] = True
+                self.wrongcameras.remove(camera_id)
+                self.update_priority(camera_id,0)
                 return True
             print(f"[Camera {camera_id}] Reconnection attempt {attempt} failed.")
            
-                
+        self.wrongcameras.remove(camera_id)
         print(f"[Camera {camera_id}] Could not reconnect after {self.max_retries} attempts.")
         return False
 
+    async def apple(self):
+        l = await asyncio.gather(
+            self.reconnect_camera(),
+            self.handle_stream(),
+        )
+        
     async def handle_stream(self):
         index = 0
 
@@ -83,11 +95,12 @@ class VideoStreamHandler:
                 print(f"[ERROR] Cannot open {self.video_sources[video_id]}. Trying to reconnect...")
                 if self.videoflags[video_id]:
                     self.videoflags[video_id] = False
-                if not await self.reconnect_camera(video_id):
-                    index = (index + 1) % len(self.video_order)
-                    continue
-                await asyncio.sleep(0.01)
-
+                    self.update_priority(video_id, -1)
+                    self.wrongcameras.append(video_id)
+                await asyncio.sleep(1)
+                index = (index + 1) % len(self.video_order)
+                continue
+                
             #print(f"Now playing: Video {video_id} - {self.video_sources[video_id]}")
             
             success, frame = camera.read()
@@ -127,7 +140,6 @@ class VideoStreamHandler:
 if __name__ == "__main__":
 
 
-
     video_sources = {
     1: r"C:\Zlearning2024\GDG\video1.mp4",
     2: r"C:\Zlearning2024\GDG\video2.mp4",
@@ -137,4 +149,4 @@ if __name__ == "__main__":
     }
 
     handler = VideoStreamHandler(video_sources, fps=1)
-    asyncio.run(handler.start_streams())
+    asyncio.run(handler.apple())
