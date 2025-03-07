@@ -117,12 +117,11 @@ class VideoStreamHandler:
 
 if __name__ == "__main__":
     video_sources = {
-        1: r"C:\\Users\\svars\\Downloads\\video1.mp4",
-        2: r"C:\\Users\\svars\\Downloads\\video2.mp4",
-        3: r"C:\\Users\\svars\\Downloads\\video3.mp4",
-        4: r"C:\\Users\\svars\\Downloads\\video4.mp4",
-        5: r"C:\\Users\\svars\\Downloads\\video5.mp4",
-        6: r"C:\\invalid\\path\\video6.mp4"
+        1: r"C:\Zlearning2024\GDG\video1.mp4",
+        2: r"C:\Zlearning2024\GDG\video2.mp4",
+        3: r"C:\Zlearning2024\GDG\video3.mp4",
+        4: r"C:\Zlearning2024\GDG\video4.mp4",
+        5: r"C:\Zlearning2024\GDG\video5.mp4"
     }
     
     handler = VideoStreamHandler(video_sources, fps=1)
