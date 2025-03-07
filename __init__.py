@@ -13,10 +13,13 @@
 
 from tests import Integration_test
 # from tests import scene_understanding_test
+# from tests import logger_test
+
 
 Integration_test.main()
 # scene_understanding_test.test_clip_model() # 605MB model
 # scene_understanding_test.test_blip_model() # 990MB model
+# scene_understanding_test.test_ollava()
 
 # print("-"*50, "Running test for YOLO image processing", "-"*50)
 # image_normalizer.test_normalize_image_for_yolo()

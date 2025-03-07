@@ -1,0 +1,4 @@
+2025-02-24 01:49:40,042 - SecurityAndSurveillance - DEBUG - This message should go to the log file
+2025-02-24 01:49:40,043 - SecurityAndSurveillance - INFO - So should this
+2025-02-24 01:49:40,043 - SecurityAndSurveillance - WARNING - And this, too
+2025-02-24 01:49:40,043 - SecurityAndSurveillance - ERROR - And non-ASCII stuff, too, like Øresund and Malmö

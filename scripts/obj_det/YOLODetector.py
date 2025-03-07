@@ -10,7 +10,7 @@ class YOLODetector:
         print(self.model.info())
 
     def detect(self, image):
-        results = self.model.predict(image)
+        results = self.model.predict(image, verbose=False)
         return self._process_results(results[0])
 
     def _process_results(self, result):
