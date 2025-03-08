@@ -1,6 +1,7 @@
 import torch
 import io
 import time
+import os
 import numpy as np
 import requests
 import ollama
@@ -55,6 +56,15 @@ class BaseSceneUnderstanding:
 class CLIPSceneUnderstanding(BaseSceneUnderstanding):
     """Scene understanding using OpenAI's CLIP model for ranking captions"""
     
+    # Class-level caption definitions
+    POTENTIAL_CAPTIONS = [
+        "a photograph of a peaceful scene",
+        "a crime scene with a weapon",
+        "people engaged in normal activities",
+        "a busy scene with many people",
+        "a violent confrontation or fight",
+    ]
+    
     def __init__(self, device="cuda"):
         super().__init__(device)
         self.processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
@@ -67,19 +77,15 @@ class CLIPSceneUnderstanding(BaseSceneUnderstanding):
     def analyze_scene(self, image):
         """Analyze scene using predefined captions"""
         self.set_image(self.load_image(image))
-        text_prompts = [
-            "a photograph of a peaceful scene",
-            "a crime scene with a weapon",
-            "people engaged in normal activities",
-            "a busy scene with many people",
-            "a violent confrontation or fight",
-        ]
-        best_caption, confidence = self.rank_captions(text_prompts)
+        best_caption, confidence = self.rank_captions(self.POTENTIAL_CAPTIONS)
         self.out = best_caption
         return self.out
 
-    def rank_captions(self, potential_captions):
+    def rank_captions(self, potential_captions=None):
         """Rank captions based on similarity to image"""
+        if potential_captions is None:
+            potential_captions = self.POTENTIAL_CAPTIONS
+            
         inputs = self.processor(
             text=potential_captions, images=self.raw_image, return_tensors="pt", padding=True
         )
@@ -102,17 +108,20 @@ class CLIPSceneUnderstanding(BaseSceneUnderstanding):
 class BLIPSceneUnderstanding(BaseSceneUnderstanding):
     """Scene understanding using Salesforce BLIP model for caption generation"""
     
+    # Class-level prompt definition
+    STARTING_PROMPT = (
+        "Analyze the image carefully. If you notice any elements related to crime, "
+        "such as a crime scene, weapon, gun, knife, violence, fight, or blood, "
+        "please mention it in the caption. If none of these are present, simply describe "
+        "the scene without reference to these terms."
+    )
+    
     def __init__(self, device="cuda"):
         super().__init__(device)
         self.processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
         self.model = BlipForConditionalGeneration.from_pretrained(
             "Salesforce/blip-image-captioning-base"
         ).to(self.device)
-        self.starting_prompt = (
-            "Analyze the image carefully. If you notice any elements related to crime, "
-            "such as a crime scene, weapon, gun, knife, violence, fight, or blood, "
-            "please mention it in the caption."
-        )
 
     def analyze_scene(self, image, text=None):
         """Generate caption for an image with optional text prompt"""
@@ -121,7 +130,7 @@ class BLIPSceneUnderstanding(BaseSceneUnderstanding):
     
     def generate_caption(self, image, text=None):
         """Generate caption for the provided image"""
-        text_prompt = text if text else self.starting_prompt
+        text_prompt = text if text else self.STARTING_PROMPT
         inputs = self.processor(image, text_prompt, return_tensors="pt") if text_prompt \
             else self.processor(image, return_tensors="pt")
         inputs = {k: v.to(self.device) for k, v in inputs.items()}
@@ -136,15 +145,43 @@ class BLIPSceneUnderstanding(BaseSceneUnderstanding):
         self.processor.save_pretrained(save_dir)
 
 
-class LLaVASceneUnderstanding(BaseSceneUnderstanding):
-    """Scene understanding using Ollama with LLaVA model"""
+class OllamaSceneUnderstanding(BaseSceneUnderstanding):
+    """Scene understanding using Ollama with various vision-language models"""
+    
+    # Class-level prompt definitions
+    LLAVA_PROMPT = (
+        "Analyze the image carefully and provide a detailed description of the scene. "
+        "If there are any elements related to crime (e.g., a weapon, gun, knife, violence, fight, blood, suspicious activity, etc), "
+        "mention them. ANSWER IN 50 WORDS"
+    )
+    
+    LLAMA3_PROMPT = (
+        "Analyze the image carefully and provide a detailed description of the scene. "
+        "If there are any elements related to crime (e.g., a weapon, gun, knife, violence, fight, blood, or suspicious activity), "
+        "mention them and explicitly state: 'Crime detected: YES'. "
+        "If no crime-related elements are present, explicitly state: 'Crime detected: NO'. "
+        "Ensure your response follows this exact format."
+    )
+    
+    # Model options
+    MODEL_OPTIONS = {
+        "num_ctx": 2048,
+        "num_gpu_layers": 20,
+        "temperature": 0
+    }
     
     def __init__(self, model="llava:7b"):
         super().__init__()
         self.model = model
+        
+        # Select appropriate prompt based on model type
+        if "llama3" in model.lower():
+            self.prompt = self.LLAMA3_PROMPT
+        else:
+            self.prompt = self.LLAVA_PROMPT
 
     def analyze_scene(self, image_path):
-        """Process the image with Ollama LLaVA and return a scene description"""
+        """Process the image with Ollama model and return a scene description"""
         image = self.load_image(image_path)
         
         # Convert image to bytes for Ollama processing
@@ -152,63 +189,79 @@ class LLaVASceneUnderstanding(BaseSceneUnderstanding):
         image.save(image_bytes, format="JPEG")
         image_bytes = image_bytes.getvalue()
         
-        # Prompt for scene analysis
-        prompt = (
-            "Analyze the image carefully and provide a detailed description of the scene. "
-            "If there are any elements related to crime (e.g., a weapon, gun, knife, violence, fight, blood, suspicious activity, etc), "
-            "mention them. ANSWER IN 50 WORDS"
-        )
-        
-        # Generate response using ollama.generate
+        # Generate response using ollama.generate for consistency across all models
         t0 = time.time()
         response = ollama.generate(
-            model=self.model, 
-            options={
-                "num_ctx": 2048,
-                "num_gpu_layers": 20,
-                "temperature": 0
-            },
-            prompt=prompt,
+            model=self.model,
+            options=self.MODEL_OPTIONS,
+            prompt=self.prompt,
             images=[image_bytes]
         )
         t1 = time.time()
-        print("model took:", t1-t0, 'sec')
+        print(f"Model {self.model} took: {t1-t0:.2f} sec")
         
         self.out = response['response']
         return self.out
 
 
-class Llama3VisionSceneUnderstanding(BaseSceneUnderstanding):
-    """Scene understanding using Ollama with Llama 3.2 Vision model"""
+class DynamicSceneUnderstanding(OllamaSceneUnderstanding):
+    """Extended Ollama scene understanding for analyzing sequences of images"""
     
-    def __init__(self):
-        super().__init__()
-        self.model = "llama3.2-vision:latest"
+    # Custom prompt for multi-frame analysis as a class attribute
+    MULTI_FRAME_PROMPT = (
+        "You are a scene understanding model tasked with describing images in a sequence. "
+        "Please analyze the following images and provide **detailed and precise descriptions**. "
+        "For each image, include the following information in your response: "
+        "- **People**: The number of individuals in the scene and a description of their actions. "
+        "- **Clothing**: Detailed description of clothing, including type (e.g., uniforms, casual wear), color, and any distinct features. "
+        "- **Objects**: List and describe objects in the scene (e.g., vehicles, furniture, accessories), including their condition and significance. "
+        "- **Background**: Provide details about the environment or setting, such as location (e.g., street, office, park), time of day (e.g., daytime, nighttime), and any notable background elements. "
+        "- **Interactions**: If applicable, describe how people and objects interact in the scene. "
+        "Ensure that every detail is based solely on visual information, and avoid making assumptions or adding extra details. "
+        "After describing each image, please provide a **summary of how the scene progresses** from one frame to the next, highlighting any changes in action, environment, or key elements."
+    )
+    
+    SYSTEM_MESSAGE = "You are analyzing images to understand dynamic scenes."
 
-    def analyze_scene(self, image_path):
-        """Process the image with Llama 3.2 and return a scene description"""
-        image = self.load_image(image_path)
+    def __init__(self, model="llava:13b"):
+        super().__init__(model)
         
-        # Convert image to bytes for Ollama processing
-        image_bytes = io.BytesIO()
-        image.save(image_bytes, format="JPEG")
-        image_bytes = image_bytes.getvalue()
+    def load_images_from_folder(self, folder_path, max_images=5):
+        """Loads up to max_images from the given folder"""
+        images = []
+        valid_extensions = (".jpg", ".jpeg", ".png")
+
+        image_files = sorted([f for f in os.listdir(folder_path) if f.lower().endswith(valid_extensions)])
+        for image_file in image_files[:max_images]:
+            image_path = os.path.join(folder_path, image_file)
+            img = Image.open(image_path).convert("RGB")
+            images.append(img)
+
+        return images
         
-        # Enhanced prompt to ensure a structured YES/NO response
-        prompt = (
-            "Analyze the image carefully and provide a detailed description of the scene. "
-            "If there are any elements related to crime (e.g., a weapon, gun, knife, violence, fight, blood, or suspicious activity), "
-            "mention them and explicitly state: 'Crime detected: YES'. "
-            "If no crime-related elements are present, explicitly state: 'Crime detected: NO'. "
-            "Ensure your response follows this exact format."
-        )
-        
-        # Generate response using ollama.chat (different from LLaVA's generate)
+    def analyze_scene_sequence(self, frames_or_folder):
+        """Analyze multiple frames and describe the scene changes"""
+        # Handle folder path or list of frames
+        if isinstance(frames_or_folder, str) and os.path.isdir(frames_or_folder):
+            frames = self.load_images_from_folder(frames_or_folder)
+        else:
+            frames = frames_or_folder
+
+        # Convert images to bytes
+        image_bytes_list = []
+        for image in frames:
+            img_bytes = io.BytesIO()
+            image = self.load_image(image)  # Ensure it's a PIL image
+            image.save(img_bytes, format="JPEG")
+            image_bytes_list.append(img_bytes.getvalue())
+            
+        # For multi-frame analysis, we need to use ollama.chat which supports multiple images
+        # This is an exception to the generate-only rule, but necessary for this functionality
         response = ollama.chat(model=self.model, messages=[
-            {"role": "system", "content": "You are an AI security analyst reviewing surveillance images for potential crime detection."},
-            {"role": "user", "content": prompt, "images": [image_bytes]}
+            {"role": "system", "content": self.SYSTEM_MESSAGE},
+            {"role": "user", "content": self.MULTI_FRAME_PROMPT, "images": image_bytes_list}
         ])
-        
+
         self.out = response['message']['content']
         return self.out
 
@@ -219,7 +272,7 @@ def create_scene_understanding(model_type, **kwargs):
     Factory function to create the appropriate scene understanding model
     
     Args:
-        model_type: String identifier for model type (clip, blip, llava, llama3)
+        model_type: String identifier for model type (clip, blip, ollama, dynamic)
         **kwargs: Additional arguments to pass to the model constructor
     
     Returns:
@@ -229,14 +282,20 @@ def create_scene_understanding(model_type, **kwargs):
         return CLIPSceneUnderstanding(**kwargs)
     elif model_type.lower() == "blip":
         return BLIPSceneUnderstanding(**kwargs)
-    elif model_type.lower() == "llava":
-        return LLaVASceneUnderstanding(**kwargs)
-    elif model_type.lower() == "llama3":
-        return Llama3VisionSceneUnderstanding(**kwargs)
+    elif model_type.lower() == "dynamic":
+        return DynamicSceneUnderstanding(**kwargs)
     else:
-        # Default to LLaVA when given a specific model name
-        if "llava" in model_type.lower():
-            return LLaVASceneUnderstanding(model=model_type, **kwargs)
-        elif "llama3" in model_type.lower() or "llama-3" in model_type.lower():
-            return Llama3VisionSceneUnderstanding()
+        # Handle Ollama models
+        if model_type.lower() in ["ollama", "llava", "llama3"]:
+            # Use default model name if not specified
+            model_name = kwargs.get("model")
+            if not model_name:
+                if model_type.lower() == "llama3":
+                    model_name = "llama3.2-vision:latest"
+                else:
+                    model_name = "llava:7b"
+            return OllamaSceneUnderstanding(model=model_name)
+        elif ":" in model_type:  # Model specified as "llava:13b" or similar
+            return OllamaSceneUnderstanding(model=model_type)
+            
         raise ValueError(f"Unknown model type: {model_type}")

@@ -15,5 +15,5 @@ This refactored module combines four different scene understanding approaches in
 BaseSceneUnderstanding
 ├── CLIPSceneUnderstanding
 ├── BLIPSceneUnderstanding
-├── LLaVASceneUnderstanding
-└── Llama3VisionSceneUnderstanding
+├── OllamaSceneUnderstanding
+│   └── DynamicSceneUnderstanding
