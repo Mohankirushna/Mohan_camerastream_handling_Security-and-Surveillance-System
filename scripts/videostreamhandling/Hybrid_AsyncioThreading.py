@@ -92,6 +92,8 @@ class VideoStreamHandler:
         
     async def handle_stream(self,video_id):
         global activecams
+        global lensources
+        global max_threads
         while True:
             if not self.running or not activecams:
                 break
@@ -135,7 +137,8 @@ class VideoStreamHandler:
             height, width, _ = frame.shape
             cv2.putText(frame, str(frame_number), (width - 100, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
             if self.debug_number!=0:
-                cv2.imshow(f"Playing Video {video_id} from thread {self.thread_id}", frame)
+                cv2.imshow(f"Playing Video {((self.thread_id-1)*(lensources//max_threads)) + video_id+ ((lensources%max_threads) if lensources%max_threads>self.thread_id else self.thread_id-1)} from thread {self.thread_id}", frame)
+
 
                 if cv2.waitKey(1) == ord('q'):
                     print("should quit")
@@ -191,7 +194,7 @@ if __name__ == "__main__":
 }
 
 
-    
+    lensources = len(video_sources)
     video_subsources = []
     loopvar = 0
     list_video_sources = list(video_sources.values())
@@ -216,3 +219,4 @@ if __name__ == "__main__":
         threads_holder[i].join()
         print("Thread ",i," has been joined")
     print("whoawwww")
+                    
