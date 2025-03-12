@@ -8,9 +8,6 @@ import threading
 import os
 import math 
 
-logical_cores = os.cpu_count()
-print(math.floor(0.75*logical_cores))
-
 
 class VideoStreamHandler:
     def __init__(self, video_sources, fps=1, max_retries=3, retry_interval=5, debug_number=1, thread_id=0):
@@ -59,8 +56,9 @@ class VideoStreamHandler:
         return mean_brightness < threshold or std_dev < std_dev_threshold
 
     async def reconnect_camera(self):
+     global activecams
      while True:
-      if not self.running:
+      if not self.running or not activecams:
           break
       if len(self.wrongcameras)==0:  
         await asyncio.sleep(2)
@@ -86,14 +84,16 @@ class VideoStreamHandler:
         await asyncio.sleep(self.retry_interval)
 
     async def apple(self):
+        global activecams
         tasks = [self.handle_stream(cam_id) for cam_id in self.video_sources.keys()]
         tasks.append(self.reconnect_camera())
         await asyncio.gather(*tasks)
         print("task returns to apple")
         
     async def handle_stream(self,video_id):
+        global activecams
         while True:
-            if not self.running:
+            if not self.running or not activecams:
                 break
             if(len(self.video_order) == 0):
                 self.video_order = self.video_cloner.copy()
@@ -137,8 +137,9 @@ class VideoStreamHandler:
             if self.debug_number!=0:
                 cv2.imshow(f"Playing Video {video_id} from thread {self.thread_id}", frame)
 
-                if cv2.waitKey(100) == ord('q'):
+                if cv2.waitKey(1) == ord('q'):
                     print("should quit")
+                    activecams = False
                     self.running = False
                     return
                     self.stop_streams()
@@ -160,17 +161,37 @@ class VideoStreamHandler:
         asyncio.run(self.apple())
 
 if __name__ == "__main__":
+    logical_cores = os.cpu_count()
+    print(math.floor(0.75*logical_cores))
     max_threads = math.floor(0.75*logical_cores)
-    #max_threads = 2
-
+    max_threads = 7
+    activecams = True
 
     video_sources = {
-    1: r"C:\Zlearning2024\GDG\video1.mp4",
-    2: r"C:\Zlearning2024\GDG\video2.mp4",
-    3: r"C:\Zlearning2024\GDG\video3.mp4",
-    4: r"C:\Zlearning2024\GDG\video4.mp4",
-    5: r"C:\Zlearning2024\GDG\video5.mp4"
-    }
+    1: r"C:\Users\student.CDC-502-097\Downloads\video1.mp4",
+    2: r"C:\Users\student.CDC-502-097\Downloads\video2.mp4",
+    3: r"C:\Users\student.CDC-502-097\Downloads\video3.mp4",
+    4: r"C:\Users\student.CDC-502-097\Downloads\video4.mp4",
+    5: r"C:\Users\student.CDC-502-097\Downloads\video5.mp4",
+    6: r"C:\Users\student.CDC-502-097\Downloads\video1.mp4",
+    7: r"C:\Users\student.CDC-502-097\Downloads\video2.mp4",
+    8: r"C:\Users\student.CDC-502-097\Downloads\video3.mp4",
+    9: r"C:\Users\student.CDC-502-097\Downloads\video4.mp4",
+    10: r"C:\Users\student.CDC-502-097\Downloads\video5.mp4",
+    11: r"C:\Users\student.CDC-502-097\Downloads\video1.mp4",
+    12: r"C:\Users\student.CDC-502-097\Downloads\video2.mp4",
+    13: r"C:\Users\student.CDC-502-097\Downloads\video3.mp4",
+    14: r"C:\Users\student.CDC-502-097\Downloads\video4.mp4",
+    15: r"C:\Users\student.CDC-502-097\Downloads\video5.mp4",
+    16: r"C:\Users\student.CDC-502-097\Downloads\video1.mp4",
+    17: r"C:\Users\student.CDC-502-097\Downloads\video2.mp4",
+    18: r"C:\Users\student.CDC-502-097\Downloads\video3.mp4",
+    19: r"C:\Users\student.CDC-502-097\Downloads\video4.mp4",
+    20: r"C:\Users\student.CDC-502-097\Downloads\video5.mp4"
+}
+
+
+    
     video_subsources = []
     loopvar = 0
     list_video_sources = list(video_sources.values())
