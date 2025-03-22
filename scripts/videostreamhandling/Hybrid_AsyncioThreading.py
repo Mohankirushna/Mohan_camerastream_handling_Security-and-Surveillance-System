@@ -6,6 +6,7 @@ import threading
 import os
 import math
 import csv
+from itertools import zip_longest
 
 class VideoStreamHandler:
     def __init__(self, video_sources, fps=1, max_retries=3, retry_interval=5, debug_number=1, thread_id=0):
@@ -35,10 +36,6 @@ class VideoStreamHandler:
         self.max_retries = max_retries
         self.retry_interval = retry_interval
 
-        # Initialize the CSV file to log the frames processed
-        self.csv_file = open(f'frame_processing_log_thread_{self.thread_id}.csv', mode='w', newline='')
-        self.csv_writer = csv.writer(self.csv_file)
-        self.csv_writer.writerow(['Video ID', 'Frame Number', 'Timestamp'])
 
     def update_priority(self, camera_id, level):
         increase_factor = level + 1
@@ -93,6 +90,7 @@ class VideoStreamHandler:
         global activecams
         global lensources
         global max_threads
+        global video_stamps
 
         # Check if cameras are initialized
         if not hasattr(self, 'cameras') or self.cameras is None:
@@ -110,7 +108,7 @@ class VideoStreamHandler:
                 await asyncio.sleep(0.001)
                 continue
             self.video_order.remove(video_id)
-
+            trunum = self.thread_id + (video_id - 1) * max_threads
             camera = self.cameras.get(video_id, None)  # Use .get() to avoid direct access errors
             if not self.videoflags[video_id]:
                 await asyncio.sleep(0.001)
@@ -129,19 +127,19 @@ class VideoStreamHandler:
             if not success:
                 print(f"[INFO] Video {video_id} has ended or failed to read.")
                 break
-
-            timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+            millis = int((time.time() % 1) * 1000)
+            timestamp = time.strftime("%H:%M:%S") + ".{:03d}".format(millis)
             frame_number = self.frame_counters[video_id]
             self.frame_counters[video_id] += 1
 
             # Write to CSV log
-            self.csv_writer.writerow([video_id, frame_number, timestamp])
+            video_stamps[trunum-1].append(timestamp)
 
             # Display video frames
             height, width, _ = frame.shape
             cv2.putText(frame, str(frame_number), (width - 100, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
             if self.debug_number != 0:
-                cv2.imshow(f"Playing Video {self.thread_id + (video_id - 1) * max_threads} from thread {self.thread_id}", frame)
+                cv2.imshow(f"Playing Video {trunum} from thread {self.thread_id}", frame)
 
                 if cv2.waitKey(1) == ord('q'):
                     print("Exiting...")
@@ -160,7 +158,7 @@ class VideoStreamHandler:
         cv2.destroyAllWindows()
         print("[INFO] Streams stopped.")
         # Close the CSV file after the streams are stopped
-        self.csv_file.close()
+
 
     def threader(self):
         print(self.video_cloner)
@@ -175,27 +173,29 @@ if __name__ == "__main__":
     activecams = True
 
     video_sources = {
-        1: r"C:\Users\Student.412-49\Downloads\video1.mp4",
-        2: r"C:\Users\Student.412-49\Downloads\video2.mp4",
-        3: r"C:\Users\Student.412-49\Downloads\video3.mp4",
-        4: r"C:\Users\Student.412-49\Downloads\video4.mp4",
-        5: r"C:\Users\Student.412-49\Downloads\video5.mp4",
-        6: r"C:\Users\Student.412-49\Downloads\video1.mp4",
-        7: r"C:\Users\Student.412-49\Downloads\video2.mp4",
-        8: r"C:\Users\Student.412-49\Downloads\video3.mp4",
-        9: r"C:\Users\Student.412-49\Downloads\video4.mp4",
-        10: r"C:\Users\Student.412-49\Downloads\video5.mp4",
-        11: r"C:\Users\Student.412-49\Downloads\video1.mp4",
-        12: r"C:\Users\Student.412-49\Downloads\video2.mp4",
-        13: r"C:\Users\Student.412-49\Downloads\video3.mp4",
-        14: r"C:\Users\Student.412-49\Downloads\video4.mp4",
-        15: r"C:\Users\Student.412-49\Downloads\video5.mp4",
-        16: r"C:\Users\Student.412-49\Downloads\video1.mp4",
-        17: r"C:\Users\Student.412-49\Downloads\video2.mp4",
-        18: r"C:\Users\Student.412-49\Downloads\video3.mp4",
-        19: r"C:\Users\Student.412-49\Downloads\video4.mp4",
-        20: r"C:\Users\Student.412-49\Downloads\video5.mp4",
-    }
+    1: r"C:\Zlearning2024\GDG\video1.mp4",
+    2: r"C:\Zlearning2024\GDG\video2.mp4",
+    3: r"C:\Zlearning2024\GDG\video3.mp4",
+    4: r"C:\Zlearning2024\GDG\video4.mp4",
+    5: r"C:\Zlearning2024\GDG\video5.mp4",
+    6: r"C:\Zlearning2024\GDG\video1.mp4",
+    7: r"C:\Zlearning2024\GDG\video2.mp4",
+    8: r"C:\Zlearning2024\GDG\video3.mp4",
+    9: r"C:\Zlearning2024\GDG\video4.mp4",
+    10: r"C:\Zlearning2024\GDG\video5.mp4",
+    11: r"C:\Zlearning2024\GDG\video1.mp4",
+    12: r"C:\Zlearning2024\GDG\video2.mp4",
+    13: r"C:\Zlearning2024\GDG\video3.mp4",
+    14: r"C:\Zlearning2024\GDG\video4.mp4",
+    15: r"C:\Zlearning2024\GDG\video5.mp4",
+    16: r"C:\Zlearning2024\GDG\video1.mp4",
+    17: r"C:\Zlearning2024\GDG\video2.mp4",
+    18: r"C:\Zlearning2024\GDG\video3.mp4",
+    19: r"C:\Zlearning2024\GDG\video4.mp4",
+    20: r"C:\Zlearning2024\GDG\video5.mp4",
+}
+    video_headers = ["video "+str(i) for i in range(len(video_sources))]
+    video_stamps = [list() for i in video_sources]
 
     lensources = len(video_sources)
     video_subsources = []
@@ -221,4 +221,13 @@ if __name__ == "__main__":
     for i in range(len(threads_holder)):
         threads_holder[i].join()
         print("Thread ", i, " has been joined")
+    
+        # Initialize the CSV file to log the frames processed
+        csv_file = open(f'GDGSHData.csv', mode='w', newline='')
+        csv_writer = csv.writer(csv_file)
+        csv_writer.writerow(video_headers)
+        colms = list(zip_longest(*video_stamps, fillvalue=None))
+        csv_writer.writerows(colms)
+        csv_file.close()
+    print(list(len(i) for i in video_stamps))
     print("whoawwww")
