@@ -3,9 +3,11 @@
 import cv2
 import matplotlib.pyplot as plt
 from ultralytics import YOLO
+from scripts.obj_det.BaseModel import BaseModel
 
-class YOLODetector:
+class YOLODetector(BaseModel):
     def __init__(self, model_path):
+        super().__init__()
         self.model = YOLO(model_path)
         print(self.model.info())
 

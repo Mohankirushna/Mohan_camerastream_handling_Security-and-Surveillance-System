@@ -27,12 +27,10 @@ class VideoStreamHandler:
         self.max_retries = max_retries
         self.retry_interval = retry_interval
         
-        
         if self.debug_number==1:
             self.update_priority(3, 1)
             self.update_priority(5, 3)
             self.cameras = {idx: cv2.VideoCapture(path) for idx, path in video_sources.items()}
-
 
     def update_priority(self, camera_id, level):
         increase_factor = level + 1
