@@ -3,6 +3,7 @@ import requests
 
 from scripts.ai_agents.scene_understanding_blip_salesforce import SceneUnderstanding
 from scripts.ai_agents.sceneunderstanding_clip_openai import SceneUnderstandingWithCLIP
+from scripts.ai_agents.scene_understanding_llava import OllavaSceneUnderstanding
 
 img_url = "https://www.mixedmartialarts.com/.image/c_limit%2Ccs_srgb%2Cq_auto:good%2Cw_700/MTg3NzUxNDMzMDM0OTM0MjQx/us-army-soldier-vs-israeli-soldier-in-knife-fight-contest.webp"
 raw_image = Image.open(requests.get(img_url, stream=True).raw).convert("RGB")
@@ -30,3 +31,8 @@ def test_blip_model():
     caption = scene_understanding.generate_caption()
     print(caption)
     print(scene_understanding.classify_crime(caption))
+
+def test_ollava():
+    ollava_analyzer = OllavaSceneUnderstanding()
+    caption = ollava_analyzer.analyze_scene(raw_image)
+    print("Ollava Response:\n", caption)

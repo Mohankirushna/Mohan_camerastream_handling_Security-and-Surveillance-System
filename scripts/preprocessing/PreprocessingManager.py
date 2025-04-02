@@ -1,24 +1,6 @@
 from queue import Queue
 from scripts.preprocessing.FrameProcessor import FrameProcessor
-import matplotlib.pyplot as plt
-
-class TaskDispatcher:
-    def __init__(self, models: dict[str,any]):
-        self.dispatching_models = models
-
-    def dispatch(self, frame: dict[str, dict]):
-        for source,value in frame.items():
-            print(f"Processed frame from source '{source}' dispatched for further processing.")
-            print(type(value))
-            for key in value.keys():
-                print(key)
-                if key in self.dispatching_models.keys():
-                    np_image = value[key]
-                    plt.imshow(np_image)
-                    plt.pause(1)
-                    self.dispatching_models[key].detect( np_image )
-                    print("Results: ", (self.dispatching_models[key]).out)
-        plt.show()
+from scripts.pipelining.TaskDispatcher import TaskDispatcher
 
 class PreprocessingManager:
     def __init__(self, task_dispatcher: TaskDispatcher, frame_processor: FrameProcessor):

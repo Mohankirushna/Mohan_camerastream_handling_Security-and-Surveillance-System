@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Security-and-Surveillance-System
 
 ### Google Developer Groups x Heliverse Project: *Security Surveillance Automation Using AI Agents*
@@ -223,44 +222,53 @@ This iterative development approach, starting from a basic demonstration to grad
 ## File Structure
 ```plaintext
 Security-and-Surveillance-System/
+├── __init__.py
+├── requirements.txt
 ├── README.md
-├── requirements.txt         
-├── main.py                  # Entry point for the entire application
-├── configs/                 # Configuration files
-│   ├── camera_config.json   # Camera zones, locations, settings
-│   ├── model_config.json    # Model settings (e.g., YOLO paths, thresholds)
-│   └── alert_config.json    # Notification thresholds
-├── data/                    # Data storage directory
-│   ├── raw_videos/          # Raw video streams or sample data
-│   ├── processed_frames/    # Preprocessed frames for AI models
-│   └── logs/                # Event and error logs
-├── scripts/                 # Core scripts for modular functionality
-│   ├── camera/
-│   │   ├── camera_stream_handler.py  # Handles video streams
-│   │   └── camera_db.py              # Camera zone/position database
-│   ├── preprocessing/
-│   │   ├── frame_extractor.py        # Extract and buffer frames
-│   │   └── image_normalizer.py       # Preprocessing for AI input
+├── data/
+│   ├── ucf_crime_dataset_download.py
+│   └── logs/
+├── scripts/
+│   ├── videostreamhandling/
+│   │   ├── streamhandler.py
+│   │   └── final_streamhandler.py
 │   ├── ai_agents/
-│   │   ├── object_detection_agent.py   # YOLO-based detection
-│   │   ├── anomaly_detection_agent.py  # Behavior pattern analysis
-│   │   ├── scene_understanding.py      # Contextual reasoning (LLMs)
-│   │   └── feedback_agent.py           # Feedback-based learning from human
+│   │   ├── Anomaly.py
+│   │   ├── app.py
+│   │   ├── scene_understanding_blip_salesforce.py
+│   │   ├── scene_understanding_llava.py
+│   │   └── scene_understanding_clip_sopenai.py
+│   ├── obj_det/
+│   │   └── YOLODetector.py
+│   ├── pipelining/
+│   │   └── TaskDispatcher.py
+│   ├── preprocessing/
+│   │   ├── FrameProcessor.py
+│   │   └── PreprocessingManager.py            
 │   ├── notification/
-│   │   ├── notifier.py               # Send email/SMS notifications
-│   │   └── talkback.py               
+│   │   ├── app.py
+│   │   ├── notif.py
+│   │   └── index.html               
 │   └── utils/
 │       ├── logger.py                 
-│       └── helper_functions.py       # Reusable helper functions
-├── models/                  # AI models and training scripts
-│   ├── yolo/                
-│   ├── anomaly_detection/   
-│   └── retrain_pipeline.py  
+│       └── util.py
+├── models/
+│   ├── models.txt               
+│   ├── yolov8_face_detection_trainer.pt  
+│   └── yolov8_face_detection_trainer.py  
 └── tests/                   # Unit and integration tests
-    ├── test_camera.py       
-    ├── test_ai_agents.py    
-    └── test_notification.py
+    ├── assets/
+    │   ├── face_detection_test.png
+    │   ├── output_video.mp4
+    │   ├── video1.mp4
+    │   ├── video2.mp4
+    │   ├── video3.mp4
+    │   ├── video4.mp4
+    │   ├── video5.mp4
+    │   └── YOLODetector_test.jpg     
+    ├── frameprocessing_test.py
+    ├── scene_understanding_test.py
+    ├── YOLODetectorTest.py
+    ├── Integration_test.py       
+    └── logger_test.py
 ```
-=======
-# delete
->>>>>>> Initial commit

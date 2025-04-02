@@ -7,8 +7,9 @@ class FrameProcessor():
 
     def preprocess_frame_for_scene_understanding(self, model, frame):
         if model == 'blip':
-            processed_frame = self.denoise_and_sharpen(frame)
-            processed_frame = self.histogram_equilization(frame)
+            processed_frame = cv2.resize(frame, (336,336))
+            processed_frame = self.denoise_and_sharpen(processed_frame)
+            # processed_frame = self.histogram_equilization(processed_frame)
         else:
             print("Mentioned Model not implemented yet. Proceeding with basic denoise and sharpen")
             processed_frame = self.denoise_and_sharpen(frame)

@@ -4,6 +4,7 @@ import asyncio
 import numpy as np
 
 class VideoStreamHandler:
+
     def __init__(self, video_sources, fps=1, max_retries=3, retry_interval=5, debug_number=2):
         self.video_sources = video_sources
         self.debug_number = debug_number
@@ -23,13 +24,11 @@ class VideoStreamHandler:
         self.frame_counters = {idx: 0 for idx in video_sources.keys()}
         self.max_retries = max_retries
         self.retry_interval = retry_interval
-        
-        
+
         if self.debug_number==1:
             self.update_priority(3, 1)
             self.update_priority(5, 3)
             self.cameras = {idx: cv2.VideoCapture(path) for idx, path in video_sources.items()}
-
 
     def update_priority(self, camera_id, level):
         increase_factor = level + 1
@@ -79,8 +78,6 @@ class VideoStreamHandler:
         
     async def handle_stream(self):
         index = 0
-
-
         while True:
             
             #Default Priority is level 0
@@ -111,6 +108,8 @@ class VideoStreamHandler:
             if self.is_blank_or_dark(frame):
                 timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
                 print(f"[WARNING] Blank or dark frame detected in video {video_id} at {timestamp}")
+ 
+            self.preprocessing_manager.add_frame(frame, video_sources[video_id])
 
             frame_number = self.frame_counters[video_id]
             self.frame_counters[video_id] += 1
@@ -122,10 +121,9 @@ class VideoStreamHandler:
                 if cv2.waitKey(100) == ord('q'):
                     self.stop_streams()
                     return
-
             await asyncio.sleep(0.001)
-            
             index = (index + 1) % len(self.video_order)
+            await asyncio.sleep(1/self.fps)
 
     async def start_streams(self):
         await self.handle_stream()
@@ -135,7 +133,7 @@ class VideoStreamHandler:
             camera.release()
         cv2.destroyAllWindows()
         print("[INFO] Streams stopped.")
-        exit()
+        # exit()
 
 if __name__ == "__main__":
 
