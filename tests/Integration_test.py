@@ -4,8 +4,8 @@ from scripts.pipelining.TaskDispatcher import TaskDispatcher
 from scripts.videostreamhandling.streamhandler import StreamHandler
 
 from scripts.obj_det.YOLODetector import YOLODetector
-from scripts.ai_agents.scene_understanding_llava import OllavaSceneUnderstanding
-from scripts.ai_agents.Anomaly import AnomalyAnalyzer
+from scripts.ai_agents.legacy.scene_understanding_llava import OllavaSceneUnderstanding
+from scripts.ai_agents.legacy.Anomaly import AnomalyAnalyzer
 
 import time
 

@@ -1,6 +1,6 @@
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.responses import JSONResponse
-from scene_understanding_blip_salesforce import SceneUnderstanding
+from scripts.ai_agents.legacy.scene_understanding_blip_salesforce import SceneUnderstanding
 from io import BytesIO
 
 app = FastAPI(title="Scene Understanding Microservice",

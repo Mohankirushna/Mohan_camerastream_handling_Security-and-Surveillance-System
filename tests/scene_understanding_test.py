@@ -1,9 +1,9 @@
 from PIL import Image
 import requests
 
-from scripts.ai_agents.scene_understanding_blip_salesforce import SceneUnderstanding
-from scripts.ai_agents.sceneunderstanding_clip_openai import SceneUnderstandingWithCLIP
-from scripts.ai_agents.scene_understanding_llava import OllavaSceneUnderstanding
+from scripts.ai_agents.legacy.scene_understanding_blip_salesforce import SceneUnderstanding
+from scripts.ai_agents.legacy.sceneunderstanding_clip_openai import SceneUnderstandingWithCLIP
+from scripts.ai_agents.legacy.scene_understanding_llava import OllavaSceneUnderstanding
 
 img_url = "https://www.mixedmartialarts.com/.image/c_limit%2Ccs_srgb%2Cq_auto:good%2Cw_700/MTg3NzUxNDMzMDM0OTM0MjQx/us-army-soldier-vs-israeli-soldier-in-knife-fight-contest.webp"
 raw_image = Image.open(requests.get(img_url, stream=True).raw).convert("RGB")
