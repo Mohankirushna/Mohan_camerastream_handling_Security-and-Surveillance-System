@@ -10,6 +10,7 @@ VIDEO_STREAM_SERVICE_URL = "http://videostream-service:8000/update_priority/"
 
 app = FastAPI()
 anomaly_model = create_scene_understanding(model_type='ollama', model='llama3.1:7b')
+session = requests.Session()
 
 class ProcessEventRequest(BaseModel):
     stream_id: str
@@ -21,7 +22,7 @@ def call_videostreamhandling_microservice(result,req):
     #TODO: Fix for actual priority. needs to be in sync with the base model
     priority = result.get("priority", 3)
     try:
-        response = requests.post(
+        response = session.post(
             VIDEO_STREAM_SERVICE_URL,
             json={"stream_id": req.stream_id, "priority": priority}
         )

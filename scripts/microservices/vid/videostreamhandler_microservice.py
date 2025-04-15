@@ -6,6 +6,8 @@ from VideoStreamHandler import VideoStreamHandler
 app = FastAPI()
 handler = VideoStreamHandler(5)
 
+KAFKA_URL = ""
+
 @app.post("/add_stream/")
 def add_stream(stream_id: int, source: str, priority: int):
     try:

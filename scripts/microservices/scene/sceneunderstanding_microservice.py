@@ -5,11 +5,12 @@ import cv2
 from refactored_scene_understanding import create_scene_understanding
 import uvicorn
 
-VIDEO_STREAM_SERVICE_URL = "http://videostream-service:8000/update_priority/"
-ANOMALY_URL = "http://anomaly-service:8005/analyze/"
+VIDEO_STREAM_SERVICE_URL = "http://localhost:8000/update_priority/"
+ANOMALY_URL = "http://localhost:8005/analyze/"
 
 app = FastAPI()
 scene_model = create_scene_understanding('llama3')
+session = requests.Session()
 
 class ProcessEventRequest(BaseModel):
     stream_id: str
@@ -24,7 +25,7 @@ def decode_image(encoded_frame):
 def call_videostreamhandler_microservice(result, stream_id):
     priority = result.get("priority")
     try:
-        response = requests.post(
+        response = session.post(
             VIDEO_STREAM_SERVICE_URL,
             json={"stream_id": stream_id, "priority": priority}
         )
@@ -37,7 +38,7 @@ def call_videostreamhandler_microservice(result, stream_id):
 
 def call_anomaly_microservice(result, stream_id, frame_type, detection):
     try:
-        response = requests.post(
+        response = session.post(
             ANOMALY_URL,
             json={
                 "stream_id": stream_id,

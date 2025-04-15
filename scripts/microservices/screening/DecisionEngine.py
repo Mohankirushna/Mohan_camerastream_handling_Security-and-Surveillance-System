@@ -2,7 +2,6 @@ import time
 import requests
 import threading
 
-
 class DecisionEngine:
     def __init__(self, pull_url, trigger_url, polling_interval=0.5):
         self.polling_interval = polling_interval
@@ -34,10 +33,11 @@ class DecisionEngine:
         #if any detection in any frame_type has confidence > 0.8, trigger next service
         for frame_type, data in detections.items():
             for det in data:
-                print(frame_type, det)
+                
                 if det.get("confidence", 0) > 0.8:
                     print("Found above")
                     # self.trigger_sceneunderstanding(stream_id, frame_type, det, image)
+                    self.trigger_test(stream_id, frame_type, det, image)
 
     def trigger_sceneunderstanding(self, stream_id, frame_type, detection, image):
         try:
@@ -51,3 +51,12 @@ class DecisionEngine:
             print(f"Triggered next service: {response.status_code}")
         except requests.RequestException as e:
             print(f"Error triggering next service: {e}")
+
+    def trigger_test(self, stream_id, frame_type, detection, image):
+        payload = {
+            "stream_id": stream_id,
+            "frame_type": frame_type,
+            "detection": detection,
+            "image": image
+        }
+        print(stream_id, " : ",frame_type, " : ", detection)
