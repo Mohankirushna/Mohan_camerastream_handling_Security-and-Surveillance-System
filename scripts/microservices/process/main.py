@@ -1,7 +1,6 @@
 from fastapi import FastAPI, HTTPException
 import uvicorn
 
-
 from FrameProcessor import FrameProcessor
 from PreprocessingManager import PreprocessingManager
 
