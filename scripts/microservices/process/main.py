@@ -3,6 +3,7 @@ import uvicorn
 
 from FrameProcessor import FrameProcessor
 from PreprocessingManager import PreprocessingManager
+from logger import logger
 
 VIDEO_STREAM_SERVICE_URL = "http://localhost:8000/get_frame/"
 
@@ -12,6 +13,7 @@ app = FastAPI()
 def get_processed_frame():
     frame_data = preprocessing_manager.get_latest_frame()
     if frame_data:
+        logger.info("Frame Processed")
         return frame_data
     raise HTTPException(status_code=404, detail="No processed frame available")
 

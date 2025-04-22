@@ -6,6 +6,7 @@ import cv2
 import time
 import base64
 
+from logger import logger
 from FrameProcessor import FrameProcessor
 
 class PreprocessingManager:
@@ -43,7 +44,7 @@ class PreprocessingManager:
                         self.processed_buffer.append(encoded_frames_b64)
 
             except requests.RequestException as e:
-                print(f"Error pulling frames: {e}")
+                logger.error(f"Error pulling frames: {e}")
             time.sleep(0.01)  # Prevent excessive requests
 
     def get_latest_frame(self):

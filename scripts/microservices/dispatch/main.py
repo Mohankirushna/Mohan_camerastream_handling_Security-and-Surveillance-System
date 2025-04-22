@@ -5,6 +5,7 @@ import uvicorn
 from TaskDispatcher import TaskDispatcher
 from YOLODetector import YOLODetector
 from EmotionDetect import EmotionDetect
+from logger import logger
 
 PREPROCESSING_SERVICE_URL = "http://localhost:8001/get_processed_frame/"
 
@@ -26,6 +27,8 @@ app = FastAPI()
 def get_results():
     result = task_dispatcher.get_latest_result()
     if result:
+        logger.info("Processed Results from all models")
+        logger.info(str(result.__dict__()))
         return result.__dict__()
     raise HTTPException(status_code=404, detail="No results available")
 

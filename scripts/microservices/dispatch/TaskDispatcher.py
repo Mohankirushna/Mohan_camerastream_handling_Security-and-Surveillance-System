@@ -9,6 +9,7 @@ import numpy as np
 
 from BufferItem import BufferItem
 from BaseModel import BaseModel
+from logger import logger
 
 class TaskDispatcher:
     def __init__(self, dispatch_models: dict[str, BaseModel], pull_url, buffer_size=10):
@@ -23,7 +24,7 @@ class TaskDispatcher:
         self.executor = ThreadPoolExecutor(max_threads)
 
         self.dispatch_thread = threading.Thread(target=self.fetch_and_dispatch, daemon=True)
-        self.dispatch_thread.start()
+        # self.dispatch_thread.start()
 
     def fetch_and_dispatch(self):
         session = requests.Session()
@@ -42,12 +43,12 @@ class TaskDispatcher:
                             frames[key] = cv2.imdecode(frame_array, cv2.IMREAD_COLOR)
                     t0 = time.time()
                     results = self.dispatch(frames)
-                    print("dispatching time: ",time.time()-t0)
+                    logger.info(f"Dispatching time: {time.time()-t0}")
                     new_buffer_item = BufferItem(stream_id,results,scene_frame)
 
                     with self.lock:
                         self.result_buffer.append(new_buffer_item)
-                        print(new_buffer_item.__dict__()['results'], len(self.result_buffer))
+                        logger.info(f"current buffer item result: {new_buffer_item.__dict__()['results']}\nlen buffer: {len(self.result_buffer)}")
 
             except requests.RequestException as e:
                 print(f"Error fetching processed frames: {e}")
@@ -62,6 +63,8 @@ class TaskDispatcher:
             if frame_type in self.dispatching_models:
                 model = self.dispatching_models[frame_type]
                 futures.append(self.executor.submit(self.run_model, model, frame_type, frame))
+            else:
+                logger.warning(f"Unknown frame type or Frame type model not initilized: {frame_type}")
 
         for future in futures:
             frame_type, out = future.result()

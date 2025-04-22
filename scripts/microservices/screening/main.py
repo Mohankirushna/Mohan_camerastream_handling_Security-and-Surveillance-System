@@ -2,6 +2,7 @@ from fastapi import FastAPI
 import uvicorn
 
 from DecisionEngine import DecisionEngine
+from logger import logger
 
 TASK_DISPATCHER_URL = "http://localhost:8002/get_results/"
 SCENE_UNDERSTANDING_URL = "http://localhost:8004/process_event"

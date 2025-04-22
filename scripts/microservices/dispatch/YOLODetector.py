@@ -1,6 +1,7 @@
 from ultralytics import YOLO
 from BaseModel import BaseModel
 from Detections import Detections
+from logger import logger
 
 class YOLODetector(BaseModel):
     def __init__(self, model_path):
@@ -19,11 +20,11 @@ class YOLODetector(BaseModel):
             confidence = float(box.conf[0])
             cls = int(box.cls[0])
             label = result.names[cls]
-
-            det = Detections(label, confidence, [x1, y1, x2, y2])
-
-            detections.append(det)
-
+            if confidence > 0.5:
+                det = Detections(label, confidence, [x1, y1, x2, y2])
+                detections.append(det)
+            else:
+                logger.info(f"low confidence <=0.5 : {label} {confidence} {[x1, y1, x2, y2]}")
         self.out = {"detections": detections}
         return self.out
 

@@ -2,8 +2,10 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import requests
 import cv2
-from refactored_scene_understanding import create_scene_understanding
 import uvicorn
+
+from logger import logger
+from refactored_scene_understanding import create_scene_understanding
 
 VIDEO_STREAM_SERVICE_URL = "http://localhost:8000/update_priority/"
 ANOMALY_URL = "http://localhost:8005/analyze/"
@@ -37,6 +39,7 @@ def call_videostreamhandler_microservice(result, stream_id):
         raise HTTPException(status_code=500, detail=f"Failed to update priority: {e}")
 
 def call_anomaly_microservice(result, stream_id, frame_type, detection):
+    logger.info("Testing: Called anomaly model")
     try:
         response = session.post(
             ANOMALY_URL,
@@ -52,6 +55,7 @@ def call_anomaly_microservice(result, stream_id, frame_type, detection):
             "caption": result,
         }
     except Exception as e:
+        logger.error(f"Failed to trigger anomly detection model: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to trigger anomaly detection: {e}")
 
 @app.post("/process_event")
@@ -68,6 +72,7 @@ async def process_event(req: ProcessEventRequest):
     scene_model.set_image(image)
     result: str = scene_model.detect(image)
 
+    logger.info(f"Scene Caption: {result}")
     # ------- tool call ----------- # 
     # action = result.get("action")
     # if action == "update_priority":
@@ -76,6 +81,7 @@ async def process_event(req: ProcessEventRequest):
     #     call_anomaly_microservice(result,stream_id,frame_type,detection)
 
     #  Testing
+    
     out = call_anomaly_microservice(result,stream_id,frame_type,detection)
     print(out)
 

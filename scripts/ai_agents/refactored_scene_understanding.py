@@ -33,6 +33,15 @@ class BaseSceneUnderstanding:
             return Image.open(image_data).convert("RGB")
         return None
     
+    def _process_features(self, scene: str, objects: list[dict])->tuple[str,str]:
+        object_description = "\n".join(
+            f"- {obj.get('label', 'unknown')} "
+            f"(Confidence: {obj.get('confidence', 0)*100:.1f}%) "
+            f"at {obj.get('bbox', [])}"
+            for obj in objects['detections']
+        )
+        return scene,object_description
+    
     def detect(self, image):
         """Common detection interface for integration with other components"""
         return self.analyze_scene(image)
