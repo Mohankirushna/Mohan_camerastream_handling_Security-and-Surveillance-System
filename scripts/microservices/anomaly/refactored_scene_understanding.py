@@ -8,11 +8,34 @@ import ollama
 from PIL import Image
 from transformers import CLIPProcessor, CLIPModel, BlipProcessor, BlipForConditionalGeneration
 
+STARTING_PROMPT = (
+    "Analyze the image carefully. If you notice any elements related to crime, "
+    "such as a crime scene, weapon, gun, knife, violence, fight, or blood, "
+    "please mention it in the caption. If none of these are present, simply describe "
+    "the scene without reference to these terms."
+)
+
+LLAVA_PROMPT = (
+    "Analyze the image carefully and provide a detailed description of the scene. "
+    "If there are any elements related to crime (e.g., a weapon, gun, knife, violence, fight, blood, suspicious activity, etc), "
+    "mention them. ANSWER IN 50 WORDS"
+)
+
+LLAMA3_PROMPT = (
+    "Analyze the image carefully and provide a detailed description of the scene. "
+    "If there are any elements related to crime (e.g., a weapon, gun, knife, violence, fight, blood, or suspicious activity), "
+    "mention them and explicitly state: 'Crime detected: YES'. "
+    "If no crime-related elements are present, explicitly state: 'Crime detected: NO'. "
+    "Ensure your response follows this exact format."
+)
+
+
 class BaseSceneUnderstanding:
     """Base class for all scene understanding models"""
-    def __init__(self, device="cuda"):
+    def __init__(self, device="cuda", prompt=None):
         self.device = device if torch.cuda.is_available() else "cpu"
         self.out = None
+        self.prompt = prompt
 
     def set_image(self, img):
         """Set the image for processing"""
@@ -32,6 +55,15 @@ class BaseSceneUnderstanding:
         elif image_data is not None:
             return Image.open(image_data).convert("RGB")
         return None
+
+    def _process_features(self, scene: str, objects: list[dict])->tuple[str,str]:
+        object_description = "\n".join(
+            f"- {obj.get('label', 'unknown')} "
+            f"(Confidence: {obj.get('confidence', 0)*100:.1f}%) "
+            f"at {obj.get('bbox', [])}"
+            for obj in objects
+        )
+        return scene,object_description
     
     def detect(self, image):
         """Common detection interface for integration with other components"""
@@ -108,14 +140,6 @@ class CLIPSceneUnderstanding(BaseSceneUnderstanding):
 class BLIPSceneUnderstanding(BaseSceneUnderstanding):
     """Scene understanding using Salesforce BLIP model for caption generation"""
     
-    # Class-level prompt definition
-    STARTING_PROMPT = (
-        "Analyze the image carefully. If you notice any elements related to crime, "
-        "such as a crime scene, weapon, gun, knife, violence, fight, or blood, "
-        "please mention it in the caption. If none of these are present, simply describe "
-        "the scene without reference to these terms."
-    )
-    
     def __init__(self, device="cuda"):
         super().__init__(device)
         self.processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
@@ -148,21 +172,6 @@ class BLIPSceneUnderstanding(BaseSceneUnderstanding):
 class OllamaSceneUnderstanding(BaseSceneUnderstanding):
     """Scene understanding using Ollama with various vision-language models"""
     
-    # Class-level prompt definitions
-    LLAVA_PROMPT = (
-        "Analyze the image carefully and provide a detailed description of the scene. "
-        "If there are any elements related to crime (e.g., a weapon, gun, knife, violence, fight, blood, suspicious activity, etc), "
-        "mention them. ANSWER IN 50 WORDS"
-    )
-    
-    LLAMA3_PROMPT = (
-        "Analyze the image carefully and provide a detailed description of the scene. "
-        "If there are any elements related to crime (e.g., a weapon, gun, knife, violence, fight, blood, or suspicious activity), "
-        "mention them and explicitly state: 'Crime detected: YES'. "
-        "If no crime-related elements are present, explicitly state: 'Crime detected: NO'. "
-        "Ensure your response follows this exact format."
-    )
-    
     # Model options
     MODEL_OPTIONS = {
         "num_ctx": 2048,
@@ -170,32 +179,29 @@ class OllamaSceneUnderstanding(BaseSceneUnderstanding):
         "temperature": 0
     }
     
-    def __init__(self, model="llava:7b"):
+    def __init__(self, model="llava:7b", prompt=LLAMA3_PROMPT):
         super().__init__()
         self.model = model
-        
-        # Select appropriate prompt based on model type
-        if "llama3" in model.lower():
-            self.prompt = self.LLAMA3_PROMPT
-        else:
-            self.prompt = self.LLAVA_PROMPT
+        self.prompt = prompt
 
-    def analyze_scene(self, image_path):
+    def analyze_scene(self, image_path, usr_prompt):
         """Process the image with Ollama model and return a scene description"""
         image = self.load_image(image_path)
         
         # Convert image to bytes for Ollama processing
-        image_bytes = io.BytesIO()
-        image.save(image_bytes, format="JPEG")
-        image_bytes = image_bytes.getvalue()
+        if not (image_path is None):
+            image_bytes = io.BytesIO()
+            image.save(image_bytes, format="JPEG")
+            image_bytes = image_bytes.getvalue()
         
         # Generate response using ollama.generate for consistency across all models
         t0 = time.time()
         response = ollama.generate(
             model=self.model,
-            options=self.MODEL_OPTIONS,
-            prompt=self.prompt,
-            images=[image_bytes]
+            # options=self.MODEL_OPTIONS,
+            system=self.prompt,
+            prompt=usr_prompt,
+            images= [image_bytes] if not (image_path is None) else []
         )
         t1 = time.time()
         print(f"Model {self.model} took: {t1-t0:.2f} sec")
@@ -294,8 +300,8 @@ def create_scene_understanding(model_type, **kwargs):
                     model_name = "llama3.2-vision:latest"
                 else:
                     model_name = "llava:7b"
-            return OllamaSceneUnderstanding(model=model_name)
+            return OllamaSceneUnderstanding(model=model_name, **kwargs)
         elif ":" in model_type:  # Model specified as "llava:13b" or similar
-            return OllamaSceneUnderstanding(model=model_type)
+            return OllamaSceneUnderstanding(model=model_type, **kwargs)
             
         raise ValueError(f"Unknown model type: {model_type}")

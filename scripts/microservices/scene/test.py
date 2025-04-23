@@ -1,15 +1,10 @@
 import cv2
 import numpy as np
 from refactored_scene_understanding import *
-
+from logger import logger
 
 system_prompt = (
-    "You are a security analyst. Provide assessment in EXACTLY this format:\n"
-    "Security Concern: <concern>\n"
-    "Reason: <reason>\n"
-    "Level: <low|medium|high>\n"
-    "Confidence: <percentage>%\n\n"
-    "Base analysis on these inputs:"
+    "You are a security analyst."
 )
 
 usr_prompt = (
@@ -52,4 +47,6 @@ print(act)
 print(emo)
 print(combined)
 
-result = scene_model.analyze_scene(img,usr_prompt)
+result = scene_model.analyze_scene(img,usr_prompt + f"\n DETECTIONS: {combined}")
+
+print(result)

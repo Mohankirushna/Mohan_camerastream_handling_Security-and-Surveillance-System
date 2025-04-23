@@ -24,7 +24,7 @@ class TaskDispatcher:
         self.executor = ThreadPoolExecutor(max_threads)
 
         self.dispatch_thread = threading.Thread(target=self.fetch_and_dispatch, daemon=True)
-        # self.dispatch_thread.start()
+        self.dispatch_thread.start()
 
     def fetch_and_dispatch(self):
         session = requests.Session()

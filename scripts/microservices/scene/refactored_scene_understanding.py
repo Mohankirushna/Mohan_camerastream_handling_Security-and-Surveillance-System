@@ -7,6 +7,7 @@ import requests
 import ollama
 from PIL import Image
 from transformers import CLIPProcessor, CLIPModel, BlipProcessor, BlipForConditionalGeneration
+from logger import logger
 
 STARTING_PROMPT = (
     "Analyze the image carefully. If you notice any elements related to crime, "
@@ -197,13 +198,13 @@ class OllamaSceneUnderstanding(BaseSceneUnderstanding):
         t0 = time.time()
         response = ollama.generate(
             model=self.model,
-            options=self.MODEL_OPTIONS,
+            # options=self.MODEL_OPTIONS,
             system=self.prompt,
             prompt=usr_prompt,
             images=[image_bytes]
         )
         t1 = time.time()
-        print(f"Model {self.model} took: {t1-t0:.2f} sec")
+        logger.info(f"Model {self.model} took: {t1-t0:.2f} sec")
         
         self.out = response['response']
         return self.out

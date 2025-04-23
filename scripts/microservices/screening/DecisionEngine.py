@@ -31,19 +31,25 @@ class DecisionEngine:
         detections = result.get("results", {})
         stream_id = result.get("stream_id", "unknown")
         image = result.get("image")
-        #if any detection in any frame_type has confidence > 0.8, trigger next service
         payload = {
             "stream_id": stream_id,
-            "image": image
+            "image": image,
+            "object_frame": [],
+            "activity_frame": [],
+            "emotion_frame": []
         }
+        # if any detection in any frame_type has confidence > 0.8, trigger next service
+        trigger = False 
         for frame_type, data in detections.items():
             for det in data:
                 if self.trigger_condition(frame_type, det):
                     if frame_type not in payload:
                         payload[frame_type] = []
                     payload[frame_type].append(det)
-
-        self.trigger_test(payload)
+                    trigger = True
+        if trigger:
+            # self.trigger_test(payload)
+            self.trigger_sceneunderstanding(payload)
     
     def trigger_condition(self, frame_type, det):
         return det.get("confidence", 0) > 0.8
@@ -51,10 +57,13 @@ class DecisionEngine:
     def trigger_sceneunderstanding(self, payload):
         try:
             response = requests.post(self.trigger_url, json=payload)
-            logger.info(f"Triggered next service: {response.status_code}")
+            logger.info(f"Triggered next service (resp code): {response.status_code}")
+            if response.status_code != 200:
+                logger.error("Error triggering the next service: Bad Error Code")
         except requests.RequestException as e:
             logger.error(f"Error triggering next service: {e}")
 
-    def trigger_test(self, payload):
+    def trigger_test(self, payload:dict):
         logger.info("Testing triggered")
-        logger.info(payload)
+        toprint_payload = {k:v for k,v in payload.items() if k != 'image'}
+        logger.info(toprint_payload)

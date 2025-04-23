@@ -21,7 +21,6 @@ def add_stream(stream_id: int, source: str, priority: int):
 
 @app.get("/get_frame/")
 def get_frame():
-    logger.info(f"Retrieved frame from stream")
     return handler.get_frame()
 
 @app.put("/update_priority/")

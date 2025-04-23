@@ -14,7 +14,7 @@ from logger import logger, LOG_IMAGE_DIR
 
 def save_fault_image(stream_id, frame, fault_type):
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"{LOG_IMAGE_DIR}/stream{stream_id}_{fault_type}_{timestamp}_{uuid.uuid4().hex[:6]}.jpg"
+    filename = f"{LOG_IMAGE_DIR}/{stream_id}_{fault_type}_{timestamp}_{uuid.uuid4().hex[:6]}.jpg"
     cv2.imwrite(filename, frame)
     logger.info(f"Saved fault image for stream {stream_id}: {filename}")
 

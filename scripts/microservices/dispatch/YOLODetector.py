@@ -21,10 +21,11 @@ class YOLODetector(BaseModel):
             cls = int(box.cls[0])
             label = result.names[cls]
             if confidence > 0.5:
+                logger.info(f"good confidence <=0.5 : {label} {confidence} {[x1, y1, x2, y2]}")
                 det = Detections(label, confidence, [x1, y1, x2, y2])
                 detections.append(det)
             else:
-                logger.info(f"low confidence <=0.5 : {label} {confidence} {[x1, y1, x2, y2]}")
+                logger.info(f"bad confidence <=0.5 : {label} {confidence} {[x1, y1, x2, y2]}")
         self.out = {"detections": detections}
         return self.out
 

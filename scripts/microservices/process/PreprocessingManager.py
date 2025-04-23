@@ -40,7 +40,7 @@ class PreprocessingManager:
                     encoded_frames_b64['stream_id'] = stream_id
                     
                     with self.lock:
-                        print(encoded_frames_b64['stream_id'])
+                        print("currently processing:", encoded_frames_b64['stream_id'])
                         self.processed_buffer.append(encoded_frames_b64)
 
             except requests.RequestException as e:

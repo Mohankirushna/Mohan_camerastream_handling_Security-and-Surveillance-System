@@ -13,8 +13,8 @@ app = FastAPI()
 def get_processed_frame():
     frame_data = preprocessing_manager.get_latest_frame()
     if frame_data:
-        logger.info("Frame Processed")
         return frame_data
+    logger.error("Data Could not be processed")
     raise HTTPException(status_code=404, detail="No processed frame available")
 
 frame_processor = FrameProcessor()
