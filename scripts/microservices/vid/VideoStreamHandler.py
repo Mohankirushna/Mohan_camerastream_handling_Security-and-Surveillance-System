@@ -7,7 +7,6 @@ import base64
 import numpy as np
 from skimage.metrics import structural_similarity as ssim
 import uuid
-import cv2
 from datetime import datetime
 
 from logger import logger, LOG_IMAGE_DIR
