@@ -1,8 +1,7 @@
-fastapi==0.115.12
-matplotlib==3.10.1
-numpy==2.2.5
-opencv_python==4.9.0.80
-opencv_python_headless==4.11.0.86
-Requests==2.32.3
-ultralytics==8.3.9
-uvicorn==0.34.2
+fastapi
+matplotlib
+numpy
+opencv_python_headless
+Requests
+ultralytics
+uvicorn

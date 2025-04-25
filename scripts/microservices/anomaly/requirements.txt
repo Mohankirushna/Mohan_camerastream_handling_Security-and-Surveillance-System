@@ -1,7 +1,6 @@
 fastapi==0.115.12
 numpy==2.2.5
 ollama==0.4.8
-opencv_python==4.9.0.80
 opencv_python_headless==4.11.0.86
 Pillow==11.2.1
 pydantic==2.11.3

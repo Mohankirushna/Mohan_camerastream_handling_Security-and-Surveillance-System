@@ -1,6 +1,5 @@
-fastapi==0.115.12
-numpy==2.2.5
-opencv_python==4.9.0.80
-opencv_python_headless==4.11.0.86
-scikit-image==0.25.2
-uvicorn==0.34.2
+fastapi
+numpy
+opencv_python_headless
+scikit-image
+uvicorn
