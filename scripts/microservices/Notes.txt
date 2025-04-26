@@ -1,3 +1,0 @@
-TODO: 
-- Camera stream transfer security
-- Camera obstruction detection
